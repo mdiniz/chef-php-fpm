@@ -645,6 +645,7 @@ html_errors = Off
 ;error_log = php_errors.log
 ; Log errors to syslog (Event Log on NT, not valid in Windows 95).
 ;error_log = syslog
+error_log = <%= @node[:php_fpm][:php_ini][:error_log] %>
 
 ;windows.show_crt_warning
 ; Default value: 0
