@@ -1,7 +1,7 @@
 ; Start a new pool named 'www'.
 ; the variable $pool can we used in any directive and will be replaced by the
 ; pool name ('www' here)
-[<%= @node[:php_fpm][:pool_name]%>]
+[<%= @pool_name %>]
 
 ; Per pool prefix
 ; It only applies on the following directives:
@@ -19,8 +19,8 @@
 ; Unix user/group of processes
 ; Note: The user is mandatory. If the group is not set, the default user's group
 ;       will be used.
-user  = <%= @node[:php_fpm][:user] %>
-group = <%= @node[:php_fpm][:group] %>
+user  = <%= @node[:php_fpm][@pool_name][:user] %>
+group = <%= @node[:php_fpm][@pool_name][:group] %>
 
 ; The address on which to accept FastCGI requests.
 ; Valid syntaxes are:
@@ -32,25 +32,25 @@ group = <%= @node[:php_fpm][:group] %>
 ; Note: This value is mandatory.
 ;listen = 127.0.0.1:9000
 
-<% if (@node[:php_fpm][:listen_to].to_s == 'socket') %>
-listen = <%= @node[:php_fpm][:socket] %>
+<% if (@node[:php_fpm][@pool_name][:listen_to].to_s == 'socket') %>
+listen = <%= @node[:php_fpm][@pool_name][:socket] %>
 <% else %>
-listen = 127.0.0.1:<%= @node[:php_fpm][:port] %>
+listen = 127.0.0.1:<%= @node[:php_fpm][@pool_name][:port] %>
 <% end %>
 
 ; Set listen(2) backlog. A value of '-1' means unlimited.
 ; Default Value: 128 (-1 on FreeBSD and OpenBSD)
 ;listen.backlog = -1
-<%= "listen.backlog = #{@node[:php_fpm][:tunable][:listen_backlog]}" if @node[:php_fpm][:tunable][:listen_backlog] %>
+<%= "listen.backlog = #{@node[:php_fpm][@pool_name][:listen_backlog]}" if @node[:php_fpm][@pool_name][:listen_backlog] %>
 
 ; Set permissions for unix socket, if one is used. In Linux, read/write
 ; permissions must be set in order to allow connections from a web server. Many
 ; BSD-derived systems allow connections regardless of permissions. 
 ; Default Values: user and group are set as the running user
 ;                 mode is set to 0666
-listen.owner = <%= @node[:php_fpm][:user] %>
-listen.group = <%= @node[:php_fpm][:group] %>
-listen.mode  = <%= @node[:php_fpm][:mode] %>
+listen.owner = <%= @node[:php_fpm][@pool_name][:user] %>
+listen.group = <%= @node[:php_fpm][@pool_name][:group] %>
+listen.mode  = <%= @node[:php_fpm][@pool_name][:mode] %>
  
 ; List of ipv4 addresses of FastCGI clients which are allowed to connect.
 ; Equivalent to the FCGI_WEB_SERVER_ADDRS environment variable in the original
@@ -59,7 +59,7 @@ listen.mode  = <%= @node[:php_fpm][:mode] %>
 ; accepted from any ip address.
 ; Default Value: any
 ;listen.allowed_clients = 127.0.0.1
-<%= "listen.allowed_clients = #{@node[:php_fpm][:tunable][:allowed_clients]}" if @node[:php_fpm][:tunable][:allowed_clients] %>
+<%= "listen.allowed_clients = #{@node[:php_fpm][@pool_name][:allowed_clients]}" if @node[:php_fpm][@pool_name][:allowed_clients] %>
 
 ; Choose how the process manager will control the number of child processes.
 ; Possible Values:
@@ -85,7 +85,7 @@ listen.mode  = <%= @node[:php_fpm][:mode] %>
 ;             pm.process_idle_timeout   - The number of seconds after which
 ;                                         an idle process will be killed.
 ; Note: This value is mandatory.
-pm = <%= @node[:php_fpm][:tunable][:process_manager_mode] %>
+pm = <%= @node[:php_fpm][@pool_name][:process_manager_mode] %>
 
 ; The number of child processes to be created when pm is set to 'static' and the
 ; maximum number of child processes when pm is set to 'dynamic' or 'ondemand'.
@@ -96,35 +96,35 @@ pm = <%= @node[:php_fpm][:tunable][:process_manager_mode] %>
 ; forget to tweak pm.* to fit your needs.
 ; Note: Used when pm is set to 'static', 'dynamic' or 'ondemand'
 ; Note: This value is mandatory.
-pm.max_children = <%= @node[:php_fpm][:tunable][:max_children] %>
+pm.max_children = <%= @node[:php_fpm][@pool_name][:max_children] %>
 
 ; The number of child processes created on startup.
 ; Note: Used only when pm is set to 'dynamic'
 ; Default Value: min_spare_servers + (max_spare_servers - min_spare_servers) / 2
-pm.start_servers = <%= @node[:php_fpm][:tunable][:start_servers] %>
+pm.start_servers = <%= @node[:php_fpm][@pool_name][:start_servers] %>
 
 ; The desired minimum number of idle server processes.
 ; Note: Used only when pm is set to 'dynamic'
 ; Note: Mandatory when pm is set to 'dynamic'
-pm.min_spare_servers = <%= @node[:php_fpm][:tunable][:min_spare_servers] %>
+pm.min_spare_servers = <%= @node[:php_fpm][@pool_name][:min_spare_servers] %>
 
 ; The desired maximum number of idle server processes.
 ; Note: Used only when pm is set to 'dynamic'
 ; Note: Mandatory when pm is set to 'dynamic'
-pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
+pm.max_spare_servers = <%= @node[:php_fpm][@pool_name][:max_spare_servers] %>
 
 ; The number of seconds after which an idle process will be killed.
 ; Note: Used only when pm is set to 'ondemand'
 ; Default Value: 10s
 ;pm.process_idle_timeout = 10s;
-<%= "pm.process_idle_timeout = #{@node[:php_fpm][:tunable][:process_idle_timeout]}" if @node[:php_fpm][:tunable][:process_idle_timeout] %>
+<%= "pm.process_idle_timeout = #{@node[:php_fpm][@pool_name][:process_idle_timeout]}" if @node[:php_fpm][@pool_name][:process_idle_timeout] %>
  
 ; The number of requests each child process should execute before respawning.
 ; This can be useful to work around memory leaks in 3rd party libraries. For
 ; endless request processing specify '0'. Equivalent to PHP_FCGI_MAX_REQUESTS.
 ; Default Value: 0
 ;pm.max_requests = 500
-<%= "pm.max_requests = #{@node[:php_fpm][:tunable][:max_requests]}" if @node[:php_fpm][:tunable][:max_requests] %>
+<%= "pm.max_requests = #{@node[:php_fpm][@pool_name][:max_requests]}" if @node[:php_fpm][@pool_name][:max_requests] %>
 
 ; The URI to view the FPM status page. If this value is not set, no URI will be
 ; recognized as a status page. 
@@ -152,7 +152,7 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ;       may conflict with a real PHP file.
 ; Default Value: not set 
 ;pm.status_path = /status
-<%= "pm.status_path = #{@node[:php_fpm][:tunable][:status_path]}" if @node[:php_fpm][:tunable][:status_path] %>
+<%= "pm.status_path = #{@node[:php_fpm][@pool_name][:status_path]}" if @node[:php_fpm][@pool_name][:status_path] %>
 
 ; The ping URI to call the monitoring page of FPM. If this value is not set, no
 ; URI will be recognized as a ping page. This could be used to test from outside
@@ -165,36 +165,36 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ;       may conflict with a real PHP file.
 ; Default Value: not set
 ;ping.path = /ping
-<%= "ping.path = #{@node[:php_fpm][:tunable][:ping_path]}" if @node[:php_fpm][:tunable][:ping_path] %>
+<%= "ping.path = #{@node[:php_fpm][@pool_name][:ping_path]}" if @node[:php_fpm][@pool_name][:ping_path] %>
 
 ; This directive may be used to customize the response of a ping request. The
 ; response is formatted as text/plain with a 200 response code.
 ; Default Value: pong
 ;ping.response = pong
-<%= "ping.response = #{@node[:php_fpm][:tunable][:ping_response]}" if @node[:php_fpm][:tunable][:ping_response] %>
+<%= "ping.response = #{@node[:php_fpm][@pool_name][:ping_response]}" if @node[:php_fpm][@pool_name][:ping_response] %>
 
 ; The access log file
 ; Default: not set
 ;access.log = log/$pool.access.log
-<%= "access.log = #{@node[:php_fpm][:tunable][:access_log]}" if @node[:php_fpm][:tunable][:access_log] %>
+<%= "access.log = #{@node[:php_fpm][@pool_name][:access_log]}" if @node[:php_fpm][@pool_name][:access_log] %>
 
 ; The access log format.
 ; Default: "%R - %u %t \"%m %r\" %s"
 ;access.format = %R - %u %t "%m %r%Q%q" %s %f %{mili}d %{kilo}M %C%%
-<%= "access.format = #{@node[:php_fpm][:tunable][:access_log_format]}" if @node[:php_fpm][:tunable][:access_log_format] %>
+<%= "access.format = #{@node[:php_fpm][@pool_name][:access_log_format]}" if @node[:php_fpm][@pool_name][:access_log_format] %>
  
 ; The log file for slow requests
 ; Default Value: not set
 ; Note: slowlog is mandatory if request_slowlog_timeout is set
 ;slowlog = log/$pool.log.slow
-<%= "slowlog = #{@node[:php_fpm][:tunable][:slow_log]}" if @node[:php_fpm][:tunable][:slow_log] %>
+<%= "slowlog = #{@node[:php_fpm][@pool_name][:slow_log]}" if @node[:php_fpm][@pool_name][:slow_log] %>
  
 ; The timeout for serving a single request after which a PHP backtrace will be
 ; dumped to the 'slowlog' file. A value of '0s' means 'off'.
 ; Available units: s(econds)(default), m(inutes), h(ours), or d(ays)
 ; Default Value: 0
 ;request_slowlog_timeout = 0
-<%= "request_slowlog_timeout = #{@node[:php_fpm][:tunable][:request_slow_log_timeout]}" if @node[:php_fpm][:tunable][:request_slow_log_timeout] %>
+<%= "request_slowlog_timeout = #{@node[:php_fpm][@pool_name][:request_slow_log_timeout]}" if @node[:php_fpm][@pool_name][:request_slow_log_timeout] %>
  
 ; The timeout for serving a single request after which the worker process will
 ; be killed. This option should be used when the 'max_execution_time' ini option
@@ -202,18 +202,18 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ; Available units: s(econds)(default), m(inutes), h(ours), or d(ays)
 ; Default Value: 0
 ;request_terminate_timeout = 0
-<%= "request_terminate_timeout = #{@node[:php_fpm][:tunable][:request_terminate_timeout]}" if @node[:php_fpm][:tunable][:request_terminate_timeout] %>
+<%= "request_terminate_timeout = #{@node[:php_fpm][@pool_name][:request_terminate_timeout]}" if @node[:php_fpm][@pool_name][:request_terminate_timeout] %>
  
 ; Set open file descriptor rlimit.
 ; Default Value: system defined value
 ;rlimit_files = 1024
-<%= "rlimit_files = #{@node[:php_fpm][:tunable][:rlimit_files]}" if @node[:php_fpm][:tunable][:rlimit_files] %>
+<%= "rlimit_files = #{@node[:php_fpm][@pool_name][:rlimit_files]}" if @node[:php_fpm][@pool_name][:rlimit_files] %>
  
 ; Set max core size rlimit.
 ; Possible Values: 'unlimited' or an integer greater or equal to 0
 ; Default Value: system defined value
 ;rlimit_core = 0
-<%= "rlimit_core = #{@node[:php_fpm][:tunable][:rlimit_core]}" if @node[:php_fpm][:tunable][:rlimit_core] %>
+<%= "rlimit_core = #{@node[:php_fpm][@pool_name][:rlimit_core]}" if @node[:php_fpm][@pool_name][:rlimit_core] %>
  
 ; Chroot to this directory at the start. This value must be defined as an
 ; absolute path. When this value is not set, chroot is not used.
@@ -225,12 +225,12 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ;       (error_log, sessions.save_path, ...).
 ; Default Value: not set
 ;chroot = 
-<%= "chroot = #{@node[:php_fpm][:tunable][:chroot]}" if @node[:php_fpm][:tunable][:chroot] %>
+<%= "chroot = #{@node[:php_fpm][@pool_name][:chroot]}" if @node[:php_fpm][@pool_name][:chroot] %>
  
 ; Chdir to this directory at the start.
 ; Note: relative path can be used.
 ; Default Value: current directory or / when chroot
-<%= "chdir = #{@node[:php_fpm][:tunable][:chdir]}" if @node[:php_fpm][:tunable][:chdir] %>
+<%= "chdir = #{@node[:php_fpm][@pool_name][:chdir]}" if @node[:php_fpm][@pool_name][:chdir] %>
  
 ; Redirect worker stdout and stderr into main error log. If not set, stdout and
 ; stderr will be redirected to /dev/null according to FastCGI specs.
@@ -238,7 +238,7 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ; process time (several ms).
 ; Default Value: no
 ;catch_workers_output = yes
-<%= "catch_workers_output = #{@node[:php_fpm][:tunable][:catch_workers_output]}" if @node[:php_fpm][:tunable][:catch_workers_output] %>
+<%= "catch_workers_output = #{@node[:php_fpm][@pool_name][:catch_workers_output]}" if @node[:php_fpm][@pool_name][:catch_workers_output] %>
 
 ; Limits the extensions of the main script FPM will allow to parse. This can
 ; prevent configuration mistakes on the web server side. You should only limit
@@ -247,7 +247,7 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ; Note: set an empty value to allow all extensions.
 ; Default Value: .php
 ;security.limit_extensions = .php .php3 .php4 .php5
-<%= "security.limit_extensions = #{@node[:php_fpm][:tunable][:limit_extensions]}" if @node[:php_fpm][:tunable][:limit_extensions] %>
+<%= "security.limit_extensions = #{@node[:php_fpm][@pool_name][:limit_extensions]}" if @node[:php_fpm][@pool_name][:limit_extensions] %>
  
 ; Pass environment variables like LD_LIBRARY_PATH. All $VARIABLEs are taken from
 ; the current environment.
@@ -258,8 +258,8 @@ pm.max_spare_servers = <%= @node[:php_fpm][:tunable][:max_spare_servers] %>
 ;env[TMPDIR] = /tmp
 ;env[TEMP] = /tmp
 
-<% if (@node[:php_fpm][:tunable][:env_variables] && @node[:php_fpm][:tunable][:env_variables].is_a?(Hash) && @node[:php_fpm][:tunable][:env_variables].any?) %>
-<% @node[:php_fpm][:tunable][:env_variables].each do |variable, value| %>
+<% if (@node[:php_fpm][@pool_name][:env_variables] && @node[:php_fpm][@pool_name][:env_variables].is_a?(Hash) && @node[:php_fpm][@pool_name][:env_variables].any?) %>
+<% @node[:php_fpm][@pool_name][:env_variables].each do |variable, value| %>
 <%= "env[#{variable.to_s.upcase}] = #{value}"%>
 <% end %>
 <% end %>

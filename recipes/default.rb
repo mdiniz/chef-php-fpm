@@ -13,10 +13,15 @@ template "/etc/php5/fpm/php.ini" do
   notifies :restart, resources(:service => "php5-fpm"), :immediately
 end
 
-template "/etc/php5/fpm/pool.d/www.conf" do
-  source "www.conf.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  notifies :restart, resources(:service => "php5-fpm"), :immediately
+node[:php_fpm][:pools].each do |pool_name|
+  template "/etc/php5/fpm/pool.d/#{pool_name}.conf" do
+    source "www.conf.erb"
+    owner "root"
+    group "root"
+    mode 0644
+    notifies :restart, resources(:service => "php5-fpm"), :immediately
+    variables({
+      :pool_name => pool_name
+    })
+  end
 end

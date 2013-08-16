@@ -1,15 +1,6 @@
 default[:php_fpm][:pid_file]                            =   "/var/run/php5-fpm.pid"
                                                         
-default[:php_fpm][:socket]                              =   "/dev/shm/php5-fpm.sock"
-default[:php_fpm][:port]                                =   9000
-                                                        
-default[:php_fpm][:listen_to]                           =   'socket'
-                                                        
-default[:php_fpm][:user]                                =   "www-data"
-default[:php_fpm][:group]                               =   "www-data"
-default[:php_fpm][:mode]                                =   "0666"
-                                                        
-default[:php_fpm][:pool_name]                           =   'www'
+default[:php_fpm][:pools]                               =   ['www']
 
 #PHP FPM php.ini settings
 default[:php_fpm][:php_ini][:memory_limit]              =   '128M'
@@ -19,8 +10,15 @@ default[:php_fpm][:php_ini][:post_max_size]             =   '8M'
 default[:php_fpm][:php_ini][:realpath_cache_size]       =   nil
 default[:php_fpm][:php_ini][:realpath_cache_ttl]        =   nil
 
-#Tunable settings in www.conf
+#Tunable settings for pools. This should be cloned for each pool listed in default[:php_fpm][:pools]
 #Nil means default php-fpm settings will be used
+default[:php_fpm][:tunable][:socket]                    =   "/var/run/php5-fpm-www.sock"
+default[:php_fpm][:tunable][:port]                      =   9000
+default[:php_fpm][:tunable][:listen_to]                 =   'socket'
+default[:php_fpm][:tunable][:user]                      =   "www-data"
+default[:php_fpm][:tunable][:group]                     =   "www-data"
+default[:php_fpm][:tunable][:mode]                      =   "0666"
+
 default[:php_fpm][:tunable][:listen_backlog]            =   nil
 default[:php_fpm][:tunable][:allowed_clients]           =   nil
 default[:php_fpm][:tunable][:process_manager_mode]      =   'dynamic'
@@ -55,3 +53,5 @@ default[:php_fpm][:tunable][:limit_extensions]          =   nil
 
 default[:php_fpm][:tunable][:env_variables]             =   nil #If using this variable, a Hash is expected with values in the format of env variable => variable value.
 default[:php_fpm][:tunable][:limit_extensions]          =   nil
+
+default[:php_fpm]['www'] = default[:php_fpm][:tunable].dup # shallow copy
