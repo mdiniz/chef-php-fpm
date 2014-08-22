@@ -1,6 +1,7 @@
 package "php5-fpm"
 
 service "php5-fpm" do
+  provider Chef::Provider::Service::Upstart
   action    [:enable, :start]
   supports  [:start, :restart, :reload, :stop]
 end
