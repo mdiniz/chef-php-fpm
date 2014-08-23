@@ -47,7 +47,7 @@ listen = 127.0.0.1:<%= @node[:php_fpm][@pool_name][:port] %>
 ; permissions must be set in order to allow connections from a web server. Many
 ; BSD-derived systems allow connections regardless of permissions. 
 ; Default Values: user and group are set as the running user
-;                 mode is set to 0666
+;                 mode is set to 0660
 listen.owner = <%= @node[:php_fpm][@pool_name][:user] %>
 listen.group = <%= @node[:php_fpm][@pool_name][:group] %>
 listen.mode  = <%= @node[:php_fpm][@pool_name][:mode] %>
@@ -127,7 +127,41 @@ pm.max_spare_servers = <%= @node[:php_fpm][@pool_name][:max_spare_servers] %>
 <%= "pm.max_requests = #{@node[:php_fpm][@pool_name][:max_requests]}" if @node[:php_fpm][@pool_name][:max_requests] %>
 
 ; The URI to view the FPM status page. If this value is not set, no URI will be
-; recognized as a status page. 
+; recognized as a status page. It shows the following informations:
+;   pool                 - the name of the pool;
+;   process manager      - static, dynamic or ondemand;
+;   start time           - the date and time FPM has started;
+;   start since          - number of seconds since FPM has started;
+;   accepted conn        - the number of request accepted by the pool;
+;   listen queue         - the number of request in the queue of pending
+;                          connections (see backlog in listen(2));
+;   max listen queue     - the maximum number of requests in the queue
+;                          of pending connections since FPM has started;
+;   listen queue len     - the size of the socket queue of pending connections;
+;   idle processes       - the number of idle processes;
+;   active processes     - the number of active processes;
+;   total processes      - the number of idle + active processes;
+;   max active processes - the maximum number of active processes since FPM
+;                          has started;
+;   max children reached - number of times, the process limit has been reached,
+;                          when pm tries to start more children (works only for
+;                          pm 'dynamic' and 'ondemand');
+; Value are updated in real time.
+; Example output:
+;   pool:                 www
+;   process manager:      static
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          62636
+;   accepted conn:        190460
+;   listen queue:         0
+;   max listen queue:     1
+;   listen queue len:     42
+;   idle processes:       4
+;   active processes:     11
+;   total processes:      15
+;   max active processes: 12
+;   max children reached: 0
+;
 ; By default the status page output is formatted as text/plain. Passing either
 ; 'html', 'xml' or 'json' in the query string will return the corresponding
 ; output syntax. Example:
@@ -143,6 +177,44 @@ pm.max_spare_servers = <%= @node[:php_fpm][@pool_name][:max_spare_servers] %>
 ;   http://www.foo.bar/status?json&full
 ;   http://www.foo.bar/status?html&full
 ;   http://www.foo.bar/status?xml&full
+; The Full status returns for each process:
+;   pid                  - the PID of the process;
+;   state                - the state of the process (Idle, Running, ...);
+;   start time           - the date and time the process has started;
+;   start since          - the number of seconds since the process has started;
+;   requests             - the number of requests the process has served;
+;   request duration     - the duration in µs of the requests;
+;   request method       - the request method (GET, POST, ...);
+;   request URI          - the request URI with the query string;
+;   content length       - the content length of the request (only with POST);
+;   user                 - the user (PHP_AUTH_USER) (or '-' if not set);
+;   script               - the main script called (or '-' if not set);
+;   last request cpu     - the %cpu the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because CPU calculation is done when the request
+;                          processing has terminated;
+;   last request memory  - the max amount of memory the last request consumed
+;                          it's always 0 if the process is not in Idle state
+;                          because memory calculation is done when the request
+;                          processing has terminated;
+; If the process is in Idle state, then informations are related to the
+; last request the process has served. Otherwise informations are related to
+; the current request being served.
+; Example output:
+;   ************************
+;   pid:                  31330
+;   state:                Running
+;   start time:           01/Jul/2011:17:53:49 +0200
+;   start since:          63087
+;   requests:             12808
+;   request duration:     1250261
+;   request method:       GET
+;   request URI:          /test_mem.php?N=10000
+;   content length:       0
+;   user:                 -
+;   script:               /home/fat/web/docs/php/test_mem.php
+;   last request cpu:     0.00
+;   last request memory:  0
 ;
 ; Note: There is a real-time FPM status monitoring sample web page available
 ;       It's available in: ${prefix}/share/fpm/status.html
@@ -179,6 +251,57 @@ pm.max_spare_servers = <%= @node[:php_fpm][@pool_name][:max_spare_servers] %>
 <%= "access.log = #{@node[:php_fpm][@pool_name][:access_log]}" if @node[:php_fpm][@pool_name][:access_log] %>
 
 ; The access log format.
+; The following syntax is allowed
+;  %%: the '%' character
+;  %C: %CPU used by the request
+;      it can accept the following format:
+;      - %{user}C for user CPU only
+;      - %{system}C for system CPU only
+;      - %{total}C  for user + system CPU (default)
+;  %d: time taken to serve the request
+;      it can accept the following format:
+;      - %{seconds}d (default)
+;      - %{miliseconds}d
+;      - %{mili}d
+;      - %{microseconds}d
+;      - %{micro}d
+;  %e: an environment variable (same as $_ENV or $_SERVER)
+;      it must be associated with embraces to specify the name of the env
+;      variable. Some exemples:
+;      - server specifics like: %{REQUEST_METHOD}e or %{SERVER_PROTOCOL}e
+;      - HTTP headers like: %{HTTP_HOST}e or %{HTTP_USER_AGENT}e
+;  %f: script filename
+;  %l: content-length of the request (for POST request only)
+;  %m: request method
+;  %M: peak of memory allocated by PHP
+;      it can accept the following format:
+;      - %{bytes}M (default)
+;      - %{kilobytes}M
+;      - %{kilo}M
+;      - %{megabytes}M
+;      - %{mega}M
+;  %n: pool name
+;  %o: output header
+;      it must be associated with embraces to specify the name of the header:
+;      - %{Content-Type}o
+;      - %{X-Powered-By}o
+;      - %{Transfert-Encoding}o
+;      - ....
+;  %p: PID of the child that serviced the request
+;  %P: PID of the parent of the child that serviced the request
+;  %q: the query string
+;  %Q: the '?' character if query string exists
+;  %r: the request URI (without the query string, see %q and %Q)
+;  %R: remote IP address
+;  %s: status (response code)
+;  %t: server time the request was received
+;      it can accept a strftime(3) format:
+;      %d/%b/%Y:%H:%M:%S %z (default) 
+;  %T: time the log has been written (the request has finished)
+;      it can accept a strftime(3) format:
+;      %d/%b/%Y:%H:%M:%S %z (default)
+;  %u: remote user
+;
 ; Default: "%R - %u %t \"%m %r\" %s"
 ;access.format = %R - %u %t "%m %r%Q%q" %s %f %{mili}d %{kilo}M %C%%
 <%= "access.format = #{@node[:php_fpm][@pool_name][:access_log_format]}" if @node[:php_fpm][@pool_name][:access_log_format] %>

@@ -17,7 +17,7 @@ default[:php_fpm][:tunable][:port]                      =   9000
 default[:php_fpm][:tunable][:listen_to]                 =   'socket'
 default[:php_fpm][:tunable][:user]                      =   "www-data"
 default[:php_fpm][:tunable][:group]                     =   "www-data"
-default[:php_fpm][:tunable][:mode]                      =   "0666"
+default[:php_fpm][:tunable][:mode]                      =   "0660"
 
 default[:php_fpm][:tunable][:listen_backlog]            =   nil
 default[:php_fpm][:tunable][:allowed_clients]           =   nil
