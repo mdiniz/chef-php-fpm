@@ -9,6 +9,16 @@ default[:php_fpm][:php_ini][:upload_max_filesize]       =   '2M'
 default[:php_fpm][:php_ini][:post_max_size]             =   '8M'
 default[:php_fpm][:php_ini][:realpath_cache_size]       =   nil
 default[:php_fpm][:php_ini][:realpath_cache_ttl]        =   nil
+default[:php_fpm][:php_ini][:session][:save_handler]    =   'redis'
+default[:php_fpm][:php_ini][:session][:save_path]       =   'tcp://localhost:6379?timeout=5'
+default[:php_fpm][:php_ini][:session][:name]            =   'sid'
+default[:php_fpm][:php_ini][:session][:gc_probability]  =   0
+default[:php_fpm][:php_ini][:session][:gc_divisor]      =   1000
+default[:php_fpm][:php_ini][:session][:gc_maxlifetime]  =   28800  # 8 hours
+default[:php_fpm][:php_ini][:session][:entropy_length]  =   128
+default[:php_fpm][:php_ini][:session][:hash_function]   =   'sha512'
+default[:php_fpm][:php_ini][:session][:hash_bits_per_character] = 5
+
 
 #Tunable settings for pools. This should be cloned for each pool listed in default[:php_fpm][:pools]
 #Nil means default php-fpm settings will be used
