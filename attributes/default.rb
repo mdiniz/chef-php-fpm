@@ -4,7 +4,7 @@ default[:php_fpm][:pools]                               =   ['www']
 
 #PHP FPM php.ini settings
 default[:php_fpm][:php_ini][:memory_limit]              =   '192M'
-default[:php_fpm][:php_ini][:max_execution_time]        =   150
+default[:php_fpm][:php_ini][:max_execution_time]        =   120
 default[:php_fpm][:php_ini][:upload_max_filesize]       =   '2M'
 default[:php_fpm][:php_ini][:post_max_size]             =   '8M'
 default[:php_fpm][:php_ini][:realpath_cache_size]       =   nil
